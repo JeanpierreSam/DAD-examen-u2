@@ -1,5 +1,8 @@
 version: '3.8'
+
 services:
+
+  # ─── Bases de datos ───────────────────────────────────────────
   postgres-instructor:
     image: postgres:16-alpine
     container_name: postgres-instructor
@@ -9,6 +12,15 @@ services:
       POSTGRES_PASSWORD: instructor_pass
     ports:
       - "5438:5432"
+    volumes:
+      - pg-instructor-data:/var/lib/postgresql/data
+    networks: [ms-net]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U instructor_user -d instructor_db"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
   postgres-alumno:
     image: postgres:16-alpine
     container_name: postgres-alumno
@@ -18,6 +30,15 @@ services:
       POSTGRES_PASSWORD: alumno_pass
     ports:
       - "5439:5432"
+    volumes:
+      - pg-alumno-data:/var/lib/postgresql/data
+    networks: [ms-net]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U alumno_user -d alumno_db"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
   postgres-taller:
     image: postgres:16-alpine
     container_name: postgres-taller
@@ -27,3 +48,137 @@ services:
       POSTGRES_PASSWORD: taller_pass
     ports:
       - "5440:5432"
+    volumes:
+      - pg-taller-data:/var/lib/postgresql/data
+    networks: [ms-net]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U taller_user -d taller_db"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  # ─── Infraestructura ──────────────────────────────────────────
+  config-server:
+    build: ./config-server
+    container_name: config-server
+    ports:
+      - "8888:8888"
+    networks: [ms-net]
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8888/actuator/health | grep UP || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  eureka-server:
+    build: ./eureka-server
+    container_name: eureka-server
+    ports:
+      - "8761:8761"
+    environment:
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka
+      EUREKA_INSTANCE_HOSTNAME: eureka-server
+      SPRING_CONFIG_IMPORT: optional:configserver:http://config-server:8888
+    depends_on:
+      config-server:
+        condition: service_healthy
+    networks: [ms-net]
+    restart: on-failure
+
+  api-gateway:
+    build: ./api-gateway
+    container_name: api-gateway
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_CONFIG_IMPORT: configserver:http://config-server:8888
+      CONFIG_SERVER_URL: http://config-server:8888
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka
+      EUREKA_INSTANCE_PREFER_IP_ADDRESS: "true"
+    depends_on:
+      config-server:
+        condition: service_healthy
+      eureka-server:
+        condition: service_started
+    networks: [ms-net]
+    restart: on-failure
+
+  # ─── Microservicios de negocio ────────────────────────────────
+  ms-gestion-instructor:
+    build: ./ms-gestion-instructor
+    container_name: ms-gestion-instructor
+    ports:
+      - "8081:8081"
+    environment:
+      SPRING_CONFIG_IMPORT: configserver:http://config-server:8888
+      CONFIG_SERVER_URL: http://config-server:8888
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka
+      EUREKA_INSTANCE_PREFER_IP_ADDRESS: "true"
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-instructor:5432/instructor_db
+      SPRING_DATASOURCE_USERNAME: instructor_user
+      SPRING_DATASOURCE_PASSWORD: instructor_pass
+      JWT_SECRET: clave_local_desarrollo_minimo_32_caracteres_!!
+    depends_on:
+      config-server:
+        condition: service_healthy
+      postgres-instructor:
+        condition: service_healthy
+    networks: [ms-net]
+    restart: on-failure
+
+  ms-gestion-alumno:
+    build: ./ms-gestion-alumno
+    container_name: ms-gestion-alumno
+    ports:
+      - "8082:8082"
+    environment:
+      SPRING_CONFIG_IMPORT: configserver:http://config-server:8888
+      CONFIG_SERVER_URL: http://config-server:8888
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka
+      EUREKA_INSTANCE_PREFER_IP_ADDRESS: "true"
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-alumno:5432/alumno_db
+      SPRING_DATASOURCE_USERNAME: alumno_user
+      SPRING_DATASOURCE_PASSWORD: alumno_pass
+      JWT_SECRET: clave_local_desarrollo_minimo_32_caracteres_!!
+    depends_on:
+      config-server:
+        condition: service_healthy
+      postgres-alumno:
+        condition: service_healthy
+    networks: [ms-net]
+    restart: on-failure
+
+  ms-gestion-taller:
+    build: ./ms-gestion-taller
+    container_name: ms-gestion-taller
+    ports:
+      - "8083:8083"
+    environment:
+      SPRING_CONFIG_IMPORT: configserver:http://config-server:8888
+      CONFIG_SERVER_URL: http://config-server:8888
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka
+      EUREKA_INSTANCE_PREFER_IP_ADDRESS: "true"
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-taller:5432/taller_db
+      SPRING_DATASOURCE_USERNAME: taller_user
+      SPRING_DATASOURCE_PASSWORD: taller_pass
+      JWT_SECRET: clave_local_desarrollo_minimo_32_caracteres_!!
+    depends_on:
+      config-server:
+        condition: service_healthy
+      postgres-taller:
+        condition: service_healthy
+      ms-gestion-instructor:
+        condition: service_started
+      ms-gestion-alumno:
+        condition: service_started
+    networks: [ms-net]
+    restart: on-failure
+
+networks:
+  ms-net:
+    driver: bridge
+
+volumes:
+  pg-instructor-data:
+  pg-alumno-data:
+  pg-taller-data:
