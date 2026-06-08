@@ -4,6 +4,7 @@
     <file url="file://$PROJECT_DIR$/api-gateway/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/config-server/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/eureka-server/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/ms-auth/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/ms-gestion-alumno/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/ms-gestion-instructor/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/ms-gestion-taller/src/main/java" charset="UTF-8" />

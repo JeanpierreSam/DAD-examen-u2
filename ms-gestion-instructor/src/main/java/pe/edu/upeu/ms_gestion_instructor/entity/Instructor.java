@@ -1,10 +1,7 @@
 package pe.edu.upeu.ms_gestion_instructor.entity;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 @Entity
 @Table(name = "instructores")
@@ -16,12 +13,22 @@ public class Instructor {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    
+
+    @Column(nullable = false, unique = true)
+    private String dni;
+
     @Column(nullable = false)
-    private String nombre;
-    
+    private String nombres;
+
+    @Column(nullable = false)
+    private String apellidos;
+
+    @Column(nullable = false)
+    private String especialidad;
+
     @Column(nullable = false, unique = true)
     private String email;
-    
-    private String especialidad;
+
+    @Column(nullable = false)
+    private Boolean estado = true;
 }

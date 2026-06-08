@@ -6,4 +6,5 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface TallerRepository extends JpaRepository<Taller, Long> {
+    boolean existsByCodigo(String codigo);
 }

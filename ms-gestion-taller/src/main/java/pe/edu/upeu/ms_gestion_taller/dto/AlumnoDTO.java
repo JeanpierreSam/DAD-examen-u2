@@ -7,7 +7,10 @@ import lombok.Data;
 @Builder
 public class AlumnoDTO {
     private Long id;
-    private String nombre;
+    private String codigo;
+    private String nombres;
+    private String apellidos;
     private String email;
-    private String grado;
+    private Integer ciclo;
+    private Integer talleresInscritos;
 }

@@ -7,7 +7,9 @@ import lombok.Data;
 @Builder
 public class InstructorDTO {
     private Long id;
-    private String nombre;
-    private String email;
+    private String dni;
+    private String nombres;
+    private String apellidos;
     private String especialidad;
+    private String email;
 }

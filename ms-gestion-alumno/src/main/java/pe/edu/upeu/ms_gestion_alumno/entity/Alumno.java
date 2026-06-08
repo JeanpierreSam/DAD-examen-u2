@@ -13,12 +13,25 @@ public class Alumno {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    
+
+    @Column(nullable = false, unique = true)
+    private String codigo;
+
     @Column(nullable = false)
-    private String nombre;
-    
+    private String nombres;
+
+    @Column(nullable = false)
+    private String apellidos;
+
     @Column(nullable = false, unique = true)
     private String email;
-    
-    private String grado;
+
+    @Column(nullable = false)
+    private Integer ciclo;
+
+    @Column(nullable = false)
+    private Boolean estado = true;
+
+    @Column(nullable = false, columnDefinition = "integer default 0")
+    private Integer talleresInscritos = 0;
 }

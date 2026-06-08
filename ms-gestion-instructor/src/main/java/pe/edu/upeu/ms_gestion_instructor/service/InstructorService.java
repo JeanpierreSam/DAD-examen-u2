@@ -4,7 +4,9 @@ import pe.edu.upeu.ms_gestion_instructor.dto.InstructorDTO;
 import java.util.List;
 
 public interface InstructorService {
-    InstructorDTO crear(InstructorDTO instructorDTO);
-    InstructorDTO obtenerPorId(Long id);
     List<InstructorDTO> listarTodos();
+    InstructorDTO obtenerPorId(Long id);
+    InstructorDTO crear(InstructorDTO dto);
+    InstructorDTO actualizar(Long id, InstructorDTO dto);
+    void eliminar(Long id);
 }

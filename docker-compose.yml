@@ -2,7 +2,25 @@ version: '3.8'
 
 services:
 
-  # ─── Bases de datos ───────────────────────────────────────────
+  # ── Bases de datos ───────────────────────────────────────────
+  postgres-auth:
+    image: postgres:16-alpine
+    container_name: postgres-auth
+    environment:
+      POSTGRES_DB: authdb
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5436:5432"
+    volumes:
+      - pg-auth-data:/var/lib/postgresql/data
+    networks: [ms-net]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d authdb"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
   postgres-instructor:
     image: postgres:16-alpine
     container_name: postgres-instructor
@@ -103,6 +121,27 @@ services:
     networks: [ms-net]
     restart: on-failure
 
+  ms-auth:
+    build: ./ms-auth
+    container_name: ms-auth
+    ports:
+      - "8084:8084"
+    environment:
+      SPRING_CONFIG_IMPORT: configserver:http://config-server:8888
+      CONFIG_SERVER_URL: http://config-server:8888
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka
+      EUREKA_INSTANCE_PREFER_IP_ADDRESS: "true"
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-auth:5432/authdb
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: postgres
+    depends_on:
+      config-server:
+        condition: service_healthy
+      postgres-auth:
+        condition: service_healthy
+    networks: [ms-net]
+    restart: on-failure
+
   # ─── Microservicios de negocio ────────────────────────────────
   ms-gestion-instructor:
     build: ./ms-gestion-instructor
@@ -117,7 +156,6 @@ services:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-instructor:5432/instructor_db
       SPRING_DATASOURCE_USERNAME: instructor_user
       SPRING_DATASOURCE_PASSWORD: instructor_pass
-      JWT_SECRET: clave_local_desarrollo_minimo_32_caracteres_!!
     depends_on:
       config-server:
         condition: service_healthy
@@ -139,7 +177,6 @@ services:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-alumno:5432/alumno_db
       SPRING_DATASOURCE_USERNAME: alumno_user
       SPRING_DATASOURCE_PASSWORD: alumno_pass
-      JWT_SECRET: clave_local_desarrollo_minimo_32_caracteres_!!
     depends_on:
       config-server:
         condition: service_healthy
@@ -161,7 +198,6 @@ services:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-taller:5432/taller_db
       SPRING_DATASOURCE_USERNAME: taller_user
       SPRING_DATASOURCE_PASSWORD: taller_pass
-      JWT_SECRET: clave_local_desarrollo_minimo_32_caracteres_!!
     depends_on:
       config-server:
         condition: service_healthy
@@ -179,6 +215,7 @@ networks:
     driver: bridge
 
 volumes:
+  pg-auth-data:
   pg-instructor-data:
   pg-alumno-data:
   pg-taller-data:

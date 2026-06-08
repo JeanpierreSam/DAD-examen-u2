@@ -1,13 +1,14 @@
 package pe.edu.upeu.ms_gestion_taller.dto;
 
-import pe.edu.upeu.ms_gestion_taller.entity.Taller;
 import lombok.Builder;
 import lombok.Data;
+
+import java.util.List;
 
 @Data
 @Builder
 public class TallerDetalleDTO {
-    private Taller taller;
+    private TallerDTO taller;
     private InstructorDTO instructor;
-    private AlumnoDTO alumno;
+    private List<AlumnoDTO> alumnosInscritos;
 }

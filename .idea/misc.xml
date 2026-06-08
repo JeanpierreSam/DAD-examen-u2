@@ -10,6 +10,7 @@
         <option value="$PROJECT_DIR$/ms-gestion-alumno/pom.xml" />
         <option value="$PROJECT_DIR$/ms-gestion-taller/pom.xml" />
         <option value="$PROJECT_DIR$/ms-gestion-instructor/pom.xml" />
+        <option value="$PROJECT_DIR$/ms-auth/pom.xml" />
       </list>
     </option>
   </component>

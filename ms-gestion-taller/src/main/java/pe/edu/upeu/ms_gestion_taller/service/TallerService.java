@@ -5,8 +5,13 @@ import pe.edu.upeu.ms_gestion_taller.dto.TallerDetalleDTO;
 import java.util.List;
 
 public interface TallerService {
-    TallerDTO crear(TallerDTO tallerDTO);
-    TallerDTO obtenerPorId(Long id);
     List<TallerDTO> listarTodos();
-    TallerDetalleDTO obtenerDetalle(Long id);
+    TallerDTO obtenerPorId(Long id);
+    TallerDTO crear(TallerDTO dto);
+    TallerDTO actualizar(Long id, TallerDTO dto);
+    void eliminar(Long id);
+    TallerDTO asignarInstructor(Long tallerId, Long instructorId);
+    TallerDTO inscribirAlumno(Long tallerId, Long alumnoId);
+    TallerDTO matricularAlumno(Long tallerId, Long alumnoId);
+    TallerDetalleDTO obtenerDetalleCompleto(Long id);
 }
